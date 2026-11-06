@@ -1,6 +1,6 @@
 # Pi
 
-Use the Pi adapter to add GPT with Taste while retaining Pi's system prompt, tools, project instructions, skills and permission decisions. The default entry applies Main and request-local User Steer to selected `openai` or `openai-codex` models whose IDs start with `gpt-`.
+Use the Pi adapter to add GPT with Taste while retaining Pi's system prompt, tools, project instructions, skills and permission decisions. The default entry applies Main and request-local User Steer to selected models whose IDs start with `gpt-`, from any provider, including custom and third-party providers.
 
 Requires **Pi 1.2.0+** (`@earendil-works/pi-coding-agent`) and **Node.js 22.19+**. The adapter has no runtime dependencies and makes no extra model calls.
 
@@ -60,7 +60,7 @@ export default createTasteExtension({
 
 The collaborator delivers its actual result with Pi's `sendMessage` API and that exact `customType`. The adapter preserves the result and adds request-local Agent Steer after it. Use different types for progress, failures, timeouts and background handles. Ordinary tool results have no completion adapter by default; a tool integration must signal its concrete completion contract through the declared custom message type. This adapter does not poll or trigger additional turns.
 
-Factory options also accept `providers: ['your-provider']` and `modelIdPattern: /^your-model$/` to change scope. Scope follows the selected model, not a virtual model's routed physical target. Load the wrapper instead of the default entry.
+No provider whitelist is applied by default. To restrict providers, pass an explicit `providers` array to the factory; `providers: ['your-provider']` accepts only that selected provider, and `providers: []` excludes all providers. The `gpt-` model-ID requirement still applies. For a provider using a different model alias, customize `modelIdPattern`, for example `modelIdPattern: /^your-model$/`; this changes matching, not the selected model ID. Scope follows the selected model, not a virtual model's routed physical target. Load the wrapper instead of the default entry.
 
 ## Generated files and delivery
 
@@ -71,7 +71,7 @@ Factory options also accept `providers: ['your-provider']` and `modelIdPattern: 
 - `texts.json` and the six Markdown files it names: runtime resources;
 - `package.json`, `PROVENANCE.md`, `THIRD_PARTY_LICENSE`, `build-manifest.json`: package and build metadata.
 
-`context_with_system` adds a dedicated `gpt_with_taste` section without replacing host sections. It projects hidden reminders only after inputs or declared completed custom messages newer than the last assistant response. Tool continuations do not repeat them. `before_provider_request` restores a missing full role block in OpenAI Responses/Codex Responses or Chat Completions with an existing system/developer message; it preserves host instructions, tools and result content. Text and reminders are request-local, not persisted conversation entries.
+`context_with_system` adds a dedicated `gpt_with_taste` section without replacing host sections. It projects hidden reminders only after inputs or declared completed custom messages newer than the last assistant response. Tool continuations do not repeat them. `before_provider_request` restores a missing full role block in OpenAI Responses/Codex Responses, Chat Completions with an existing system/developer message, or TRAE raw-chat requests with `config_name`, `model_name` and an existing system/developer message in `messages`. It preserves host instructions, tools and result content; TRAE routing fields remain unchanged, without adding a synthetic `model` field. Already-present role blocks are not duplicated, and unknown or malformed formats still warn. Text and reminders are request-local, not persisted conversation entries.
 
 Run the model-free consumer fixture from this repository:
 
@@ -79,7 +79,7 @@ Run the model-free consumer fixture from this repository:
 node adapters/pi/test.mjs
 ```
 
-It imports the generated entry, registers and invokes its callbacks, and checks source delivery, role isolation, completion routing, repeat projection, payload preservation and off/reset controls. It does not contact a provider.
+It imports the generated entry, registers and invokes its callbacks, and checks source delivery, role isolation, completion routing, repeat projection, provider filtering, non-GPT exclusion, payload preservation and off/reset controls. It does not contact a provider.
 
 Thanks to [SpadeLushen/pi-gpt-with-taste](https://github.com/SpadeLushen/pi-gpt-with-taste) for the Pi port and its request-local injection and final-payload guard. This adapter adapts its MIT-licensed transport at commit `07013409c19fe307d0a951ef5f2b3f72f4c837b3`; `PROVENANCE.md` records the adopted code and changes, and `THIRD_PARTY_LICENSE` retains the license.
 

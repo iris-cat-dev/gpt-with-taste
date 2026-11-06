@@ -1,6 +1,6 @@
 # Oh My Pi (OMP)
 
-Use the OMP adapter to add GPT with Taste to the main session and native child sessions without replacing OMP's built-in prompt, live tool catalog, environment footer or per-spawn assignment. The default entry uses OMP's `ctx.agent.kind` to select Main or Sub. It applies to selected `openai` or `openai-codex` models whose IDs start with `gpt-`.
+Use the OMP adapter to add GPT with Taste to the main session and native child sessions without replacing OMP's built-in prompt, live tool catalog, environment footer or per-spawn assignment. The default entry uses OMP's `ctx.agent.kind` to select Main or Sub. It applies to selected models whose IDs start with `gpt-`, regardless of provider, including custom and third-party OpenAI-compatible providers.
 
 Requires **OMP 18.11.0+** (`@oh-my-pi/pi-coding-agent`). The adapter has no runtime dependencies and makes no extra model calls.
 
@@ -34,7 +34,7 @@ If startup reports missing or empty resources, rebuild and replace the entire co
 
 OMP 18.11.0 exposes `ctx.agent.kind` as `main` or `sub`, including spawned sessions at depth zero. OMP rebinds the loaded factory to child sessions. Main receives full Main plus User Steer; native children always receive full Sub plus Sub Steer, even when the root factory selects Main or Independent explicitly. Child inputs never receive User Steer. `dist/omp/independent.js` selects Independent with steering off for the root session; its native Task and `/tan` children still receive Sub plus Sub Steer. Load it instead of `index.js`.
 
-For a host that explicitly supplies the role or needs a different model scope:
+For a host that explicitly supplies the role, opts into provider filtering or needs custom model ID matching:
 
 ```js
 import {createTasteExtension} from '/absolute/path/to/dist/omp/runtime.mjs';
@@ -44,6 +44,8 @@ export default createTasteExtension({
   modelIdPattern: /^your-model$/,
 });
 ```
+
+Omit `providers` to accept any selected provider. Supplying an array opts into filtering by exact provider ID; `providers: []` excludes all providers. The default `modelIdPattern` remains `/^gpt-/` even with a provider filter. Override it to match a custom model ID that does not start with `gpt-`, as in the example.
 
 Use an explicit role only where the host guarantees it. Scope follows the selected model, not a virtual model's routed physical target. If the host disables extension loading in a restricted child, it must explicitly arrange the child entry; the generated `sub.md` is also available for direct role composition.
 
@@ -60,7 +62,7 @@ Ordinary tools, spawn acknowledgments, running handles, errors, timeouts and can
 
 `before_agent_start` appends one separate role block to the existing system-block array, preserving built-in instructions and every footer/assignment block. `context` inserts request-local hidden reminders after unanswered inputs and completed async Task deliveries newer than the last assistant response. Reprojection replaces this adapter's own additions rather than accumulating them; ordinary tool continuations do not repeat User Steer.
 
-The final-payload guard restores a missing full role block for OpenAI Responses/Codex Responses or Chat Completions with an existing system/developer message. It preserves host instructions, tools and metadata. For another wire format, system-block augmentation still applies, but recovering from a later forced-prompt replacement requires a provider-specific guard. Later payload-rewriting extensions can override delivery.
+The final-payload guard restores a missing full role block for OpenAI Responses/Codex Responses, Chat Completions with an existing system/developer message, and TRAE raw-chat requests with `config_name`, `model_name` and an existing system/developer message in `messages`. TRAE's native routing fields remain unchanged; no synthetic `model` field is added. The guard preserves host instructions, tools and metadata and leaves an already-present role block untouched. Unknown or malformed wire formats still warn; system-block augmentation remains active, but recovering from a later forced-prompt replacement requires a guard for that format. Later payload-rewriting extensions can override delivery.
 
 Run the model-free consumer fixture:
 
@@ -68,7 +70,7 @@ Run the model-free consumer fixture:
 node adapters/omp/test.mjs
 ```
 
-It imports the generated entry, registers and invokes callbacks, and checks native role isolation, complete text delivery, host-block preservation, Task and async-result positive/negative cases, unchanged tool results, repeat projection and off/reset controls. It does not contact a provider.
+It imports the generated entry, registers and invokes callbacks, and checks default custom-provider support, opt-in provider filters, model ID matching, native role isolation, complete text delivery, host-block preservation, Task and async-result positive/negative cases, unchanged tool results, OpenAI-compatible and TRAE payload preservation, unsupported-format warnings, repeat projection and off/reset controls. It does not contact a provider.
 
 Thanks to [SpadeLushen/pi-gpt-with-taste](https://github.com/SpadeLushen/pi-gpt-with-taste) for the request-local input projection and OpenAI final-payload guard adapted here under MIT. `PROVENANCE.md` records the source commit and OMP-specific changes; `THIRD_PARTY_LICENSE` retains the license.
 

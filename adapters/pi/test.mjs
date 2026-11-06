@@ -39,9 +39,30 @@ assert.ok(projected[2].content.includes(sources.userSteer));
 assert.deepEqual(await project(projected), projected);
 assert.equal(countSteers(await project([system, user, assistant, tool])), 0);
 assert.equal(countSteers(await project([system, user, assistant, tool, {...user, timestamp: 4}])), 1);
-const excluded = await project(input, pi, {...ctx, model: {provider: 'anthropic', id: 'gpt-fixture'}});
+const customContext = {...ctx, model: {provider: 'custom-provider', id: 'gpt-fixture'}};
+const customMessages = await project(input, pi, customContext);
+assert.ok(customMessages[0].sections.gpt_with_taste.includes(sources.main));
+assert.equal(countSteers(customMessages), 1);
+assert.ok(customMessages[2].content.includes(sources.userSteer));
+const nonGptContext = {...customContext, model: {...customContext.model, id: 'other-fixture'}};
+const excluded = await project(input, pi, nonGptContext);
 assert.equal(excluded[0].sections.gpt_with_taste, undefined);
 assert.equal(countSteers(excluded), 0);
+for (const providers of [['custom-provider'], ['openai', 'openai-codex'], []]) {
+  const filtered = api();
+  module.createTasteExtension({providers})(filtered);
+  const accepted = providers.includes(customContext.model.provider);
+  const messages = await project(input, filtered, customContext);
+  assert.equal(messages[0].sections.gpt_with_taste?.includes(sources.main) ?? false, accepted);
+  assert.equal(countSteers(messages), accepted ? 1 : 0);
+  if (accepted) assert.ok(messages[2].content.includes(sources.userSteer));
+  const payload = {model: 'gpt-fixture', instructions: 'HOST PERMISSIONS', input: [], tools: [{name: 'read'}]};
+  const guarded = await emit(filtered, 'before_provider_request', {payload}, customContext);
+  if (accepted) {
+    assert.ok(guarded.instructions.includes(sources.main));
+    assert.deepEqual(guarded.tools, payload.tools);
+  } else assert.equal(guarded, undefined);
+}
 
 const sub = api();
 module.createTasteExtension({role: 'sub'})(sub);
@@ -65,20 +86,28 @@ for (const type of ['fixture:progress', 'fixture:timeout', 'fixture:error', 'fix
   assert.equal(countSteers(await project([system, assistant, {...result, customType: type}], parent)), 0);
 assert.equal(pi.handlers.has('tool_result'), false);
 
-for (const payload of [
+for (const context of [ctx, customContext]) for (const payload of [
   {model: 'gpt-fixture', instructions: 'HOST PERMISSIONS', input: [{role: 'user', content: 'input'}], tools: [{name: 'read'}]},
   {model: 'gpt-fixture', messages: [{role: 'developer', content: 'HOST PERMISSIONS', keep: 1}, {role: 'user', content: 'input'}], tools: [{name: 'read'}]},
   {model: 'gpt-fixture', messages: [{role: 'system', content: [{type: 'text', text: 'HOST PERMISSIONS'}]}]},
 ]) {
   const snapshot = structuredClone(payload);
-  const guarded = await emit(pi, 'before_provider_request', {payload}, ctx);
+  const guarded = await emit(pi, 'before_provider_request', {payload}, context);
   assert.ok(JSON.stringify(guarded).includes('HOST PERMISSIONS'));
-  assert.ok(JSON.stringify(guarded).includes('gpt-with-taste'));
+  const instructions = guarded.instructions ?? (typeof guarded.messages[0].content === 'string'
+    ? guarded.messages[0].content : guarded.messages[0].content.map(part => part.text).join('\n'));
+  assert.ok(instructions.includes(sources.main));
   assert.deepEqual(guarded.tools, payload.tools);
+  assert.deepEqual(guarded.input, payload.input);
+  if (payload.messages) {
+    assert.deepEqual(guarded.messages.slice(1), payload.messages.slice(1));
+    assert.equal(guarded.messages[0].keep, payload.messages[0].keep);
+  }
   assert.deepEqual(payload, snapshot);
-  assert.equal(await emit(pi, 'before_provider_request', {payload: guarded}, ctx), undefined);
+  assert.equal(await emit(pi, 'before_provider_request', {payload: guarded}, context), undefined);
 }
 assert.equal(await emit(pi, 'before_provider_request', {payload: {model: 'gpt-fixture', unknown: []}}, ctx), undefined);
+assert.equal(await emit(pi, 'before_provider_request', {payload: {model: 'other-fixture', instructions: 'HOST', input: []}}, nonGptContext), undefined);
 await pi.commands.get('taste').handler('off', ctx);
 const off = await project(projected);
 assert.equal(off[0].sections.gpt_with_taste, undefined);

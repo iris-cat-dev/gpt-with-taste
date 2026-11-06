@@ -39,6 +39,8 @@ GPT with Taste compiles from a single behavioral recipe into native instructions
 | **Oh My Pi (OMP)** | Native identity-aware extension | [docs/harnesses/omp.md](docs/harnesses/omp.md) |
 | **DeepSeek Harness (dsh)** | Native Cordis plugin with request-local steer | [docs/harnesses/dsh.md](docs/harnesses/dsh.md) |
 
+Pi and OMP apply to selected `gpt-*` models from any provider by default, without requiring an official subscription or fixed provider ID. Credentials and routing remain configured in the host. For custom model IDs or an optional provider allowlist, see the respective setup guide.
+
 Running in another host? See [docs/harnesses/porting.md](docs/harnesses/porting.md). Maintainers edit the single English authoring source in `recipe/` and compile across targets: see [docs/authoring.md](docs/authoring.md).
 
 ---

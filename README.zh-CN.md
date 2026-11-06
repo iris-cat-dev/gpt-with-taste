@@ -40,6 +40,8 @@ GPT with Taste 由单一行为配方源编译生成，为各支持宿主提供�
 | **Oh My Pi (OMP)** | 原生身份感知扩展 | [docs/harnesses/omp.md](docs/harnesses/omp.md) |
 | **DeepSeek Harness (dsh)** | 原生 Cordis 插件与请求级提醒 | [docs/harnesses/dsh.md](docs/harnesses/dsh.md) |
 
+Pi 和 OMP 默认对任意供应商的 `gpt-*` 模型生效，不要求官方订阅或固定供应商 ID。认证和请求路由仍由宿主配置管理。自定义模型 ID 或按需限制供应商，见对应接入指南。
+
 要在其他宿主中使用？参考 [docs/harnesses/porting.md](docs/harnesses/porting.md)。维护者在 `recipe/` 中维护单一英文作者源，通过编译器适配各个目标：详见 [docs/authoring.md](docs/authoring.md)。
 
 ---

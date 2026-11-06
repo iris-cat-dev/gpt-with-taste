@@ -23,7 +23,7 @@ export function completedDelivery(message) {
   return message.role === 'custom' && message.customType === 'async-result' && message.attribution === 'agent' &&
     Array.isArray(message.details?.jobs) && message.details.jobs.some(job => job.type === 'task' && job.status === 'completed');
 }
-export function createTasteExtension({role = 'auto', providers = ['openai', 'openai-codex'], modelIdPattern = /^gpt-/} = {}) {
+export function createTasteExtension({role = 'auto', providers, modelIdPattern = /^gpt-/} = {}) {
   if (!['auto', 'main', 'sub', 'independent'].includes(role)) throw new Error('GPT with Taste role must be auto, main, sub or independent');
   return function tasteExtension(pi) {
     if (registrations.has(pi)) throw new Error('Load only one GPT with Taste entry per OMP session');
@@ -42,7 +42,7 @@ export function createTasteExtension({role = 'auto', providers = ['openai', 'ope
       const selectedRole = ctx.agent?.kind === 'sub' ? 'sub' : role === 'auto' ? ctx.agent.kind : role;
       const state = overrides(ctx);
       modelIdPattern.lastIndex = 0;
-      const active = state.enabled !== false && !!ctx.model && providers.includes(ctx.model.provider) && modelIdPattern.test(ctx.model.id);
+      const active = state.enabled !== false && !!ctx.model && (providers === undefined || providers.includes(ctx.model.provider)) && modelIdPattern.test(ctx.model.id);
       modelIdPattern.lastIndex = 0;
       return {role: selectedRole, active, steering: state.steering !== false && selectedRole !== 'independent'};
     };

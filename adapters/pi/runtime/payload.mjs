@@ -9,8 +9,9 @@ function instructionText(message) {
     typeof part.text === 'string' ? part.text : '').join('\n');
 }
 export function ensurePayloadInstructions(payload, block) {
-  if (!record(payload) || typeof payload.model !== 'string') return {supported: false};
+  if (!record(payload)) return {supported: false};
   if (Array.isArray(payload.input)) {
+    if (typeof payload.model !== 'string') return {supported: false};
     const existing = payload.instructions;
     if (existing != null && typeof existing !== 'string') return {supported: false};
     if ((typeof existing === 'string' && existing.includes(block)) ||
@@ -19,6 +20,9 @@ export function ensurePayloadInstructions(payload, block) {
       instructions: existing ? `${existing}\n\n${block}` : block}};
   }
   if (Array.isArray(payload.messages)) {
+    // TRAE identifies its route with config_name/model_name instead of model.
+    if (typeof payload.model !== 'string' &&
+        !(typeof payload.config_name === 'string' && typeof payload.model_name === 'string')) return {supported: false};
     const messages = payload.messages;
     if (messages.some(message => instructionText(message).includes(block))) return {supported: true};
     const index = messages.findIndex(message => record(message) && ['system', 'developer'].includes(message.role));

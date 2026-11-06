@@ -2,3 +2,4 @@
 .gpt-with-taste/install-receipt.json
 node_modules/
 *.gpt-with-taste-*.tmp
+.DS_Store

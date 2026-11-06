@@ -13,7 +13,7 @@ function report(ctx, text, level = 'info') {
   if (ctx.hasUI) ctx.ui.notify(text, level);
   else console.error(`GPT with Taste: ${text}`);
 }
-export function createTasteExtension({role = 'main', providers = ['openai', 'openai-codex'],
+export function createTasteExtension({role = 'main', providers,
   modelIdPattern = /^gpt-/, completedResultTypes = []} = {}) {
   if (!['main', 'sub', 'independent'].includes(role)) throw new Error('GPT with Taste role must be main, sub or independent');
   const completed = new Set(completedResultTypes);
@@ -29,7 +29,7 @@ export function createTasteExtension({role = 'main', providers = ['openai', 'ope
     const decision = ctx => {
       const state = overrides(ctx);
       modelIdPattern.lastIndex = 0;
-      const active = state.enabled !== false && !!ctx.model && providers.includes(ctx.model.provider) && modelIdPattern.test(ctx.model.id);
+      const active = state.enabled !== false && !!ctx.model && (providers === undefined || providers.includes(ctx.model.provider)) && modelIdPattern.test(ctx.model.id);
       modelIdPattern.lastIndex = 0;
       return {role, active, steering: state.steering !== false, completedResultTypes: completed};
     };
