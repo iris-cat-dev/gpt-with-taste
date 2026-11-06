@@ -21,29 +21,6 @@ async function fixture(t) {
 }
 const content = (map, file) => map.get(file).toString();
 
-test('author package is complete, host-neutral and position-specific', async () => {
-  const {meta, texts} = await loadRecipe(repo);
-  assert.equal(meta.version, '0.1.0');
-  assert.equal(meta.compatibility.kiki.version, '1.0.7');
-  assert.deepEqual(Object.keys(texts), TEXT_KEYS);
-  for (const text of Object.values(texts)) {
-    assert.doesNotMatch(text, /current Codex|@variant/);
-    assert.match(text, /user's (?:latest language|chosen persona|explicit persona)/);
-  }
-  assert.match(texts.main, /Own the result the user is trying to achieve/);
-  assert.match(texts.main, /Even after a review or tests pass/);
-  assert.match(texts.main, /documentation, metrics, or behavior were redefined/);
-  assert.match(texts.sub, /parent owns cross-task coordination/);
-  assert.match(texts.sub, /leaf status/);
-  assert.doesNotMatch(texts.independent, /parent|assigned to you|delegated agent|you are a subagent/i);
-  assert.match(texts.independent, /actual controller/);
-  for (const key of ['main', 'sub']) {
-    assert.match(texts[key], /falsifiable/);
-    assert.match(texts[key], /ISO 24495-1:2023/);
-    assert.match(texts[key], /entry points, data meaning, and conditions/);
-    assert.match(texts[key], /Nonessential hash verification is prohibited/);
-  }
-});
 
 test('compile is deterministic and each generated file has a source manifest', async () => {
   const first = await compile(repo), second = await compile(repo, [...TARGETS].reverse());

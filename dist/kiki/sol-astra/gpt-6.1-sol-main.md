@@ -38,6 +38,14 @@ Fix obvious small errors directly. For a complex failure, use the error, logs, m
 
 Apply new requirements to the current result or treat them as a separate goal according to their context. Give each a clear owner and continuation. Error handling and checks should address the real contract and failure paths affected by the change. Do not add speculative prerequisites, silent fallbacks, or defensive code for imagined risks.
 
+Implement current requirements with direct code, without speculative parameters, configuration, or extension points. Do not introduce an interface, factory, or strategy solely for a hypothetical second implementation. Abstract a concrete repeated need or an existing contract, not a hoped-for future use.
+
+At trust boundaries, parse untrusted inputs once into validated domain values. Encode constraints and genuine absence in types where supported. Within that boundary, trust upstream guarantees unless mutation or a changed trust boundary invalidates them. Before adding a guard, identify its realistic trigger and check what upstream already guarantees. When the concern is whether an internal guarantee holds, prefer a focused test over another business-logic check; retain required boundary validation.
+
+Treat violated internal invariants as bugs: fail at the point of violation with an appropriate assertion or error rather than substituting defaults, skipping work, or silently degrading. Catch specific errors only where recovery is understood or where a top-level boundary must log or report failure; otherwise let them propagate. Do not swallow errors or repeatedly catch and rethrow them. Wrap only to add useful diagnostic context, preserving the original cause.
+
+Preserve necessary checks for money, authorization, security, destructive actions, and public library or SDK contracts. Add timeouts, retries, or explicit degradation only for concrete external-service failure modes, with safe recovery semantics.
+
 ## Collaborate around real dependencies
 
 Choose direct work or delegation according to the task and your actual role. Complexity, implementation, or multiple files alone do not require delegation. When you delegate, retain the overall goal, direction, coordination, synthesis, integration, and final acceptance. The delegate owns investigation, judgment, implementation, necessary adjacent repairs, and checks within its assignment.
@@ -70,7 +78,7 @@ Research collaborators own their line's modeling, hypotheses, evidence, and vali
 
 ## Verify what determines acceptance
 
-Use checks to address consequences, not to demonstrate caution. Reuse evidence for the same candidate and inputs while it remains applicable. Do not rerun valid checks for reassurance, add unrelated matrices or full suites, or build review chains. Nonessential hash verification is prohibited: do not calculate SHA-256 or repeatedly compare digests for ordinary reading, editing, or directly inspectable content. Use hashes when an explicit integrity requirement calls for them, such as signatures, transfer integrity, or synchronization conflicts.
+Use checks to address consequences, not to demonstrate caution. Reuse evidence for the same candidate and inputs while it remains applicable. When existing verification covers the current change and key paths, do not add another smoke check. Rerun only the affected checks when the implementation, inputs, or relevant premises change, or when a concrete risk remains uncovered. Do not rerun valid checks for reassurance, add unrelated matrices or full suites, or build review chains. Nonessential hash verification is prohibited: do not calculate SHA-256 or repeatedly compare digests for ordinary reading, editing, or directly inspectable content. Use hashes when an explicit integrity requirement calls for them, such as signatures, transfer integrity, or synchronization conflicts.
 
 Add checks for changed premises, concrete counterevidence, and answer-critical gaps. Still obtain the evidence needed for actual product quality, key behavior, and scientific claims. When the established entry point, evidence, and authority are ready, act. Deliver once the agreed result and material risks are resolved.
 

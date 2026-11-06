@@ -23,10 +23,11 @@ These are the complete English author sources. [The compiler](authoring.md) gene
 | Decisive judgment and taste in engineering, writing, visuals, and games | Opening; “Make taste visible in the work” | Opening; “Make a clear quality judgment” |
 | Continuous execution, reuse, diagnosis, and necessary adjacent repairs | “Take the shortest complete route” | “Reuse sound work and finish the implementation” |
 | Existing entry points, data meaning, and conditions of use | “Take the shortest complete route” | “Reuse sound work and finish the implementation” |
+| Current-use abstractions, boundary parsing, typed guarantees, invariant failures, and error propagation | “Take the shortest complete route” | “Reuse sound work and finish the implementation” |
 | Direct work or delegation, one active owner, and actual scope limits | “Collaborate around real dependencies” | “Keep the assignment intact” |
 | Synthesis before routing, stable handoffs, and early messages only for action-changing conflicts | “Collaborate around real dependencies” | “Hand back a result the parent can use” |
 | Falsifiable questions, strong fair baselines, quantitative reasoning, counterevidence, and research continuation | “When the task involves research” | “When the task involves research” |
-| Consequence-based verification, evidence reuse, recovery, and the ban on nonessential hashing | “Verify what determines acceptance” | “Verify the risks that determine delivery” |
+| Consequence-based verification, evidence reuse, no redundant smoke checks, recovery, and the ban on nonessential hashing | “Verify what determines acceptance” | “Verify the risks that determine delivery” |
 | Reader First selection, whole-sentence deletion, useful explanations, and integrated revision | “Write for the reader's next action” | “Hand back a result the parent can use”; “Write for the recipient's next action” |
 | Actual permission, source identity, credentials, task continuity, and appropriate memory | “Respect authority, sources, and continuity” | “Preserve authority and continuity” |
 
@@ -38,13 +39,15 @@ These are the complete English author sources. [The compiler](authoring.md) gene
 
 **Compatibility belongs with implementation.** Preserving an old call means preserving its entry point, data meaning, and conditions of use. New prerequisites belong only to the new capability. Keeping these together prevents a new feature from quietly narrowing established usage.
 
+**Engineering checks follow trust and contracts.** Main, Sub, and Independent favor abstractions for current needs, parse external inputs at trust boundaries, express constraints and absence in types, and rely on valid upstream guarantees. Internal invariant violations fail visibly; specific errors are caught for understood recovery or top-level reporting, with useful context and the original cause preserved. Focused tests address uncertainty about internal guarantees without replacing necessary boundary validation. Money, authorization, security, destructive actions, public APIs, and concrete external-service failures retain appropriate safeguards.
+
 **Research is conditional, not diminished.** Its own section keeps routine development from acquiring a mandatory research process. Both complete prompts retain falsifiable claims, fair baselines, traceable quantities and assumptions, original-source checks, and faithful positive and negative evidence. The main prompt also retains topic selection and cross-line synthesis. Counterevidence updates the topic, mechanism, configuration, or contribution it actually affects; a failed configuration need not end a worthwhile research goal. The subagent follows that reasoning within the parent's topic and authorization.
 
 **Collaboration centers on ownership and decisions.** The main agent may work directly or delegate. The collaboration sections distinguish receiving a result, adopting it, delivering it, and its actual consumption. The exhibition-loan example makes recipient-specific routing concrete: a framing dimensions request and a curator's installation conclusion are different messages. The subagent has the same obligation to judge and finish local work, without inheriting the parent's coordination powers.
 
 **Reader First is selection before phrasing.** The prompts ask whether a sentence answers the reader's present question before asking how to polish it. Useless material is deleted, not restyled or moved to small print. The matrix-multiplication example retains the cost explanation and removes an endorsement of the paper's wording. The BLEU example keeps the observed result and the authors' interpretation together. These examples distinguish useful explanation from defensive repetition without weakening supported claims.
 
-**Verification follows the affected action.** Necessary behavioral, visual, and scientific evidence remains required. Reassurance reruns, unrelated review chains, and nonessential hashes are explicitly rejected. Recovery and permission conditions appear before the action they constrain, not as new blockers for independent ready work.
+**Verification follows the affected action.** Necessary behavioral, visual, and scientific evidence remains required. Existing verification covering the current change and key paths rules out another smoke check. Changed implementations, inputs, or relevant premises, and concrete uncovered risks call for checks of the affected area only. Main, Sub, Independent, and all three Steers carry this rule. Reassurance reruns, unrelated review chains, and nonessential hashes are explicitly rejected. Recovery and permission conditions appear before the action they constrain, not as new blockers for independent ready work.
 
 ## Codex integration decisions
 
