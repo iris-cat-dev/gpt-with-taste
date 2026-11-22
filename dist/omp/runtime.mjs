@@ -57,8 +57,19 @@ export function createTasteExtension({role = 'auto', providers, modelIdPattern =
     });
     pi.on('context', (event, ctx) => {
       const current = decision(ctx);
-      const messages = event.messages.filter(message => !(message.role === 'custom' && message.customType === STEER));
-      if (!current.active || !current.steering) return {messages};
+      const messages = event.messages.filter(message =>
+        !(message.role === 'custom' && message.customType === STEER) &&
+        !(message.role === 'developer' && message.timestamp === 0 && typeof message.content === 'string' &&
+          message.content.startsWith(`${OPEN}\n`)));
+      if (!current.active) return {messages};
+      if (['openai-codex-responses', 'openai-responses'].includes(ctx.model.api)) {
+        const roleBlock = block(texts, current.role);
+        // Repair an overridden system prompt before the SDK compares history
+        // prefixes, so enabling or disabling Taste also changes that baseline.
+        if (!ctx.getSystemPrompt().some(part => part.includes(roleBlock)))
+          messages.unshift({role: 'developer', content: roleBlock, timestamp: 0});
+      }
+      if (!current.steering) return {messages};
       const lastAssistant = messages.findLastIndex(message => message.role === 'assistant');
       return {messages: messages.flatMap((message, index) => {
         let route;
@@ -81,7 +92,7 @@ export function createTasteExtension({role = 'auto', providers, modelIdPattern =
     pi.on('before_provider_request', (event, ctx) => {
       const current = decision(ctx);
       if (!current.active) return;
-      const result = ensurePayloadInstructions(event.payload, block(texts, current.role));
+      const result = ensurePayloadInstructions(event.payload, block(texts, current.role), {responsesHistory: true});
       if (!result.supported && !warned) report(ctx,
         'Final-request guard cannot inspect this payload format. OMP system-block augmentation remains active; forced prompt replacement needs a provider-specific guard.', 'warning');
       warned = !result.supported;

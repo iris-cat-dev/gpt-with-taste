@@ -8,7 +8,7 @@ function instructionText(message) {
   return message.content.map(part => record(part) && ['text', 'input_text'].includes(part.type) &&
     typeof part.text === 'string' ? part.text : '').join('\n');
 }
-export function ensurePayloadInstructions(payload, block) {
+export function ensurePayloadInstructions(payload, block, {responsesHistory = false} = {}) {
   if (!record(payload)) return {supported: false};
   if (Array.isArray(payload.input)) {
     if (typeof payload.model !== 'string') return {supported: false};
@@ -16,6 +16,16 @@ export function ensurePayloadInstructions(payload, block) {
     if (existing != null && typeof existing !== 'string') return {supported: false};
     if ((typeof existing === 'string' && existing.includes(block)) ||
         payload.input.some(message => instructionText(message).includes(block))) return {supported: true};
+    if (responsesHistory) {
+      // A chained frame has only new items. The full frame already put the
+      // block into history; a top-level instructions repair would not carry over.
+      if (typeof payload.previous_response_id === 'string' && payload.previous_response_id.length > 0)
+        return {supported: true};
+      const firstOther = payload.input.findIndex(message => !['system', 'developer'].includes(message?.role));
+      const index = firstOther === -1 ? payload.input.length : firstOther;
+      const message = {type: 'message', role: 'developer', content: [{type: 'input_text', text: block}]};
+      return {supported: true, payload: {...payload, input: payload.input.toSpliced(index, 0, message)}};
+    }
     return {supported: true, payload: {...payload,
       instructions: existing ? `${existing}\n\n${block}` : block}};
   }

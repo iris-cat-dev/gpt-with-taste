@@ -137,7 +137,7 @@ for (const {options, model, active} of [
       active && isMain ? {additionalContext: sources.agentSteer} : undefined);
     const payload = {model: 'routed-physical-model', instructions: 'HOST SYSTEM', input: []};
     const guarded = await emit(scoped, 'before_provider_request', {payload}, scopedCtx);
-    if (active) assert.ok(guarded.instructions.includes(sources[isMain ? 'main' : 'sub']));
+    if (active) assert.equal(guarded.input[0].content[0].text, `<gpt-with-taste>\n${sources[isMain ? 'main' : 'sub']}\n</gpt-with-taste>`);
     else assert.equal(guarded, undefined);
   }
 }
@@ -164,8 +164,8 @@ for (const [runtime, context, role] of [[omp, mainCtx, 'main'], [child, childCtx
     const guarded = await emit(runtime, 'before_provider_request', {payload}, requestCtx);
     const fullBlock = `<gpt-with-taste>\n${sources[role]}\n</gpt-with-taste>`;
     if (payload.input) {
-      assert.equal(guarded.instructions, `HOST SYSTEM\n\n${fullBlock}`);
-      assert.deepEqual({...guarded, instructions: payload.instructions}, payload);
+      assert.deepEqual(guarded.input[0], {type: 'message', role: 'developer', content: [{type: 'input_text', text: fullBlock}]});
+      assert.deepEqual({...guarded, input: guarded.input.slice(1)}, payload);
     } else {
       const content = payload.messages[0].content;
       assert.deepEqual(guarded.messages[0], {...payload.messages[0],
@@ -178,6 +178,37 @@ for (const [runtime, context, role] of [[omp, mainCtx, 'main'], [child, childCtx
     assert.deepEqual(notices, []);
   }
 }
+// The final hook sees only the delta. A full replay of the same input can
+// still be repaired, but the repair must live in chainable developer history.
+const codexCtx = {...mainCtx, model: {...mainCtx.model, api: 'openai-codex-responses'}};
+const fullBlock = prepared.systemPrompt.at(-1);
+const codexGuard = payload => emit(omp, 'before_provider_request', {payload}, codexCtx);
+const codexBase = {type: 'response.create', model: 'gpt-fixture', instructions: 'HOST SYSTEM'};
+const developer = {type: 'message', role: 'developer', content: [{type: 'input_text', text: fullBlock}]};
+const hostDeveloper = {...developer, content: [{type: 'input_text', text: 'HOST DEVELOPER'}]};
+const firstFrame = {...codexBase, input: [hostDeveloper, developer, user]};
+assert.equal(await codexGuard(firstFrame), undefined);
+for (const type of ['custom_tool_call_output', 'function_call_output']) {
+  const output = {type, call_id: 'call-1', output: 'ok'};
+  const delta = {...codexBase, previous_response_id: 'resp-1', input: [output]};
+  assert.equal(await codexGuard(delta), undefined);
+  const replay = {...codexBase, input: [hostDeveloper, user, output]};
+  assert.deepEqual(await codexGuard(replay), {...replay, input: [hostDeveloper, developer, user, output]});
+}
+
+// If a later before_agent_start handler replaces the system prompt, project
+// the missing block before the SDK decides whether the chain is appendable.
+const withPrompt = systemPrompt => ({...codexCtx, getSystemPrompt: () => systemPrompt});
+const continuation = [user, assistant, tool];
+assert.deepEqual(await project(continuation, omp, withPrompt(prepared.systemPrompt)), continuation);
+const repaired = await project(continuation, omp, withPrompt(host));
+assert.deepEqual(repaired, [{role: 'developer', content: fullBlock, timestamp: 0}, ...continuation]);
+assert.deepEqual(await project(repaired, omp, withPrompt(host)), repaired);
+assert.deepEqual(await project(repaired, omp, withPrompt(prepared.systemPrompt)), continuation);
+await omp.commands.get('taste').handler('off', codexCtx);
+assert.deepEqual(await project(repaired, omp, withPrompt(host)), continuation);
+await omp.commands.get('taste').handler('reset', codexCtx);
+
 for (const payload of [
   {config_name: 'gpt-fixture', messages: [{role: 'system', content: 'HOST SYSTEM'}]},
   {config_name: 'gpt-fixture', model_name: 42, messages: [{role: 'system', content: 'HOST SYSTEM'}]},

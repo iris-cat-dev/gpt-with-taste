@@ -276,7 +276,12 @@ test('actual generated callbacks and simulated provider payloads keep author met
       assert.deepEqual(steers.map(message => message.content), expected.map(([route, key]) => wrapped(key, `gpt-with-taste-${route}-steer`)));
       assertCleanContext(projected);
       const payload = callbacks.get('before_provider_request')({payload: {model: 'gpt-fixture', instructions: 'HOST', input: []}}, ctx);
-      assert.equal(payload.instructions, `HOST\n\n${wrapped(role)}`);
+      if (target === 'omp') {
+        assert.equal(payload.instructions, 'HOST');
+        assert.deepEqual(payload.input, [{type: 'message', role: 'developer', content: [{type: 'input_text', text: wrapped(role)}]}]);
+      } else {
+        assert.equal(payload.instructions, `HOST\n\n${wrapped(role)}`);
+      }
       assertCleanContext(payload);
     }
   }

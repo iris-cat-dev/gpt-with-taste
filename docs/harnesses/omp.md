@@ -62,7 +62,9 @@ Ordinary tools, spawn acknowledgments, running handles, errors, timeouts and can
 
 `before_agent_start` appends one separate role block to the existing system-block array, preserving built-in instructions and every footer/assignment block. `context` inserts request-local hidden reminders after unanswered inputs and completed async Task deliveries newer than the last assistant response. Reprojection replaces this adapter's own additions rather than accumulating them; ordinary tool continuations do not repeat User Steer.
 
-The final-payload guard restores a missing full role block for OpenAI Responses/Codex Responses, Chat Completions with an existing system/developer message, and TRAE raw-chat requests with `config_name`, `model_name` and an existing system/developer message in `messages`. TRAE's native routing fields remain unchanged; no synthetic `model` field is added. The guard preserves host instructions, tools and metadata and leaves an already-present role block untouched. Unknown or malformed wire formats still warn; system-block augmentation remains active, but recovering from a later forced-prompt replacement requires a guard for that format. Later payload-rewriting extensions can override delivery.
+For OpenAI Responses and Codex Responses, if a later `before_agent_start` handler replaces the effective system prompt, `context` restores the missing role block as a developer message before the SDK compares history for chaining. The final-payload guard also repairs a full request by adding a missing developer message to `input`, leaving top-level `instructions` untouched. A request with `previous_response_id` contains only new input items; the guard leaves it alone and relies on the role block already in the response chain.
+
+For Chat Completions and TRAE raw chat (`config_name` and `model_name`), the final-payload guard restores missing rules in an existing system/developer message. Host instructions, tools, metadata and TRAE routing fields are preserved. Unknown or malformed wire formats still warn. Later payload-rewriting extensions can override delivery.
 
 Run the model-free consumer fixture:
 
@@ -70,7 +72,7 @@ Run the model-free consumer fixture:
 node adapters/omp/test.mjs
 ```
 
-It imports the generated entry, registers and invokes callbacks, and checks default custom-provider support, opt-in provider filters, model ID matching, native role isolation, complete text delivery, host-block preservation, Task and async-result positive/negative cases, unchanged tool results, OpenAI-compatible and TRAE payload preservation, unsupported-format warnings, repeat projection and off/reset controls. It does not contact a provider.
+It imports the generated entry and exercises role and model scope, steering, payload preservation, command controls, and the Codex regression: function and custom tool continuations keep their instructions unchanged, while a full replay still restores missing rules. It does not contact a provider.
 
 Thanks to [SpadeLushen/pi-gpt-with-taste](https://github.com/SpadeLushen/pi-gpt-with-taste) for the request-local input projection and OpenAI final-payload guard adapted here under MIT. `PROVENANCE.md` records the source commit and OMP-specific changes; `THIRD_PARTY_LICENSE` retains the license.
 
