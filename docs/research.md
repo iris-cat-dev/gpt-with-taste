@@ -46,4 +46,4 @@ The practical edit is often deletion. Once an example or interface already expla
 4. Return to that task with ordinary user input.
 5. Keep, revise, or remove the change based on the result.
 
-The [case index](cases.md) keeps each case's request, run conditions, and outputs together.
+The [case index](cases.md) keeps each case's request, run conditions, and outputs together. For the full tuning, compression, live-regression, and local-deployment workflow, see [docs/tuning-workflow.md](tuning-workflow.md).

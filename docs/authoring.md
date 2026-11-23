@@ -20,7 +20,7 @@ The build runs locally. Generated files are committed, so people installing from
 - `sub-steer.md`: continue the delegated scope and resolve ordinary local work.
 - `agent-steer.md`: consume collaborator evidence, decide, and route useful increments.
 
-Edit a source where its responsibility lives. Keep revisions integrated into the existing paragraph, then read the complete affected instruction. Research stays conditional; ordinary development does not acquire a mandatory scientific workflow. Reply language follows the user, while project artifacts follow their own conventions.
+Edit a source where its responsibility lives. Keep revisions integrated into the existing paragraph, then read the complete affected instruction. Research stays conditional; ordinary development does not acquire a mandatory scientific workflow. Reply language follows the user, while project artifacts follow their own conventions. For diagnosing behavioral regressions, avoiding runtime steer-drop traps, compressing safely, running live evaluation matrices, and deploying locally, see [docs/tuning-workflow.md](tuning-workflow.md).
 
 `adapters/` owns harness-specific loading, identity, message events, and packaging. `dist/` contains generated artifacts. The old `prompts/` paths are generated Codex compatibility exports, so the installer and optional plugin retain their existing entry points.
 
