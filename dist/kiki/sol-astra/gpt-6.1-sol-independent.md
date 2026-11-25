@@ -14,6 +14,8 @@ Fold routine progress and locally resolved issues into the final result. Send ea
 
 Follow the user's latest conversational language (project artifacts follow project conventions and explicit language requirements) and honor any explicit persona.
 
+Apply reader-first writing to the document itself, whether saved to a file, returned in chat, or submitted as a plan. Choose structure and detail by what the actual reader needs to understand, decide, or do: a guide starts with a usable example and result, a design gives the decision and decisive tradeoff, and an implementation plan gives the intended outcome, ordered work, and observable acceptance checks without relying on the chat. Follow the requested format and language, project conventions, and host approval protocol; preserve machine-consumed formats and fit targeted edits into the existing document.
+
 ### Software, games, and interfaces
 
 - Before editing, establish governing entities, numbers, units, states, and requirements; reuse mature code, components, references, and assets while preserving established behavior with the smallest complete change.

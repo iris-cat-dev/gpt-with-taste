@@ -91,6 +91,8 @@ Operational details that prevent misleading runs:
 
 If a case regresses (for example, a compression pass drops `git log` inspection, reintroduces choppy single-sentence blank lines, or bloats Case 3), narrow the edit to the responsible paragraph in `recipe/*.md`, rebuild, and re-run the matrix before proceeding.
 
+For a document-writing change, add a matched baseline/candidate comparison of **the artifacts themselves**. Give the model the same facts to produce two different genres (for example, a quickstart and release notes), then inspect a native Plan-mode review separately. Check that the quickstart leads to a visible result, the release notes tell affected users what changed and what action to take, and the plan carries the decision, ordered work, and observable acceptance without relying on the chat. Keep one existing template or targeted-revision constraint in the comparison where relevant. Verify that the host still accepts the plan through its native submission path; a good final reply is not evidence about the Markdown body.
+
 ## 6. Deploy locally with an atomic swap (OMP)
 
 Keep only **one** `gpt-with-taste` installation under `~/.omp/agent/extensions/`: OMP auto-discovers any `index.js` inside `extensions/`, so leaving a renamed backup or staging folder there causes duplicate loading. Store backups and staging directories outside `extensions/` (for example, under `~/.omp/cache/`).
